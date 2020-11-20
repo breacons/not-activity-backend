@@ -1,10 +1,24 @@
-import express from 'express';
-
-const app = express();
+import express from "express";
+import * as httpserver from 'http';
+import { Server } from 'socket.io';
 const port = 3000;
-app.get('/', (req, res) => {
-  res.send('Hello world');
+
+const app = express()
+const http = httpserver.createServer(app);
+const io = new Server(http);
+
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
 });
-app.listen(port, () => {
+
+
+io.on("connection", (socket) => {
+  console.log("a user connected");
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
+
+http.listen(port, () => {
   return console.log(`server is listening on ${port}`);
 });
