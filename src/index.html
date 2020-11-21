@@ -51,6 +51,50 @@
     <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
     <script>
       var socket = io();
+
+      function createGame(playerName) {
+        socket.emit("createGame", { name: playerName, webRtc: {} });
+      }
+
+      function joinGame(gameId, playerName) {
+        socket.emit("joinGame", {
+          player: { name: playerName, webRtc: {} },
+          room: gameId,
+        });
+      }
+
+      function startGame(gameId) {
+        socket.emit("startGame");
+      }
+
+      function submitSolution(solution, gameId) {
+        socket.emit("solution", { solution });
+      }
+
+      var gameInfo = {};
+      var gameState = {};
+      var interval = undefined;
+
+      socket.on("gameInfo", (gameInfoEvent) => {
+        console.log(gameInfoEvent);
+        gameInfo = gameInfoEvent;
+      });
+      socket.on("gameState", (gameStateEvent) => {
+        console.log(gameStateEvent);
+        gameState = gameStateEvent;
+
+        if (!interval) {
+          interval = setInterval(() => {
+            if (
+              gameState?.rounds &&
+              gameState.rounds[gameState.round].activePlayer === socket.id
+            ) {
+              socket.emit("tick");
+              console.log("Sending tick");
+            }
+          }, 1000);
+        }
+      });
     </script>
   </body>
 </html>

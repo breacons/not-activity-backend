@@ -6,6 +6,7 @@ const mockQuestions = ["elephant", "pizza", "spaceship"];
 export type Player = {
   id: string;
   name: string;
+  score: number;
   webRtc: any;
 };
 
@@ -37,7 +38,7 @@ export type GameStateRound = Omit<Round, "answer">;
 export type GameState = Game & { rounds: GameStateRound[] };
 
 export class GameController {
-  players: { [playerId: string]: any } = {};
+  players: { [playerId: string]: { game: string; player: Player } } = {};
   activeGames: { [gameId: string]: Game } = {};
 
   constructor() {}
@@ -77,8 +78,28 @@ export class GameController {
     };
   }
 
+  private getPlayerGame(playerId: string) {
+    const gameId = this.getPlayerGameId(playerId);
+    return this.activeGames && this.activeGames[gameId];
+  }
+
+  leaveGame(playerId: string) {
+    const gameId = this.players[playerId]?.game;
+    const game = this.activeGames[gameId];
+
+    if (game) {
+      game.players = game.players.filter((p) => p.id !== playerId);
+      delete this.players[playerId];
+      console.log("Removing player from game");
+      if (!game.players.length) {
+        delete this.activeGames[gameId];
+        console.log("Cleaning up empty game");
+      }
+    }
+  }
+
   getPlayerGameId(playerId: string) {
-      return this.players[playerId]?.game;
+    return this.players[playerId]?.game;
   }
 
   createGame(creator: Player) {
@@ -100,13 +121,13 @@ export class GameController {
     if (game) {
       this.players[player.id] = { game: game.id, player };
       game.players.push(player);
+      const gameInfo = this.createGameInfo(game);
+      return gameInfo;
     }
-    const gameInfo = this.createGameInfo(game);
-    return gameInfo;
   }
 
-  startGame(gameId: string) {
-    const game = this.activeGames[gameId];
+  startGame(playerId: string) {
+    const game = this.getPlayerGame(playerId);
     if (game) {
       const round: Round = {
         roundNumber: 0,
@@ -124,6 +145,21 @@ export class GameController {
     }
   }
 
+  gameTick(playerId: string) {
+    const game = this.getPlayerGame(playerId);
+    if (game) {
+      const currentRound = game.rounds[game.round];
+      if (currentRound.timeLeft > 0) {
+        currentRound.timeLeft -= 1;
+      } else {
+        const nextRound = this.getNextRound(game);
+        game.rounds.push(nextRound);
+        game.round += 1;
+      }
+      return this.createGameState(game);
+    }
+  }
+
   createGameState(game: Game): GameState {
     const gameState = { ...game };
     gameState.rounds = game.rounds.map((round) => ({
@@ -136,8 +172,7 @@ export class GameController {
 
   getGameInfo(gameId: string) {
     const game = this.activeGames[gameId];
-
-    return game ? this.createGameInfo(game) : undefined;
+    return game;
   }
 
   getGameState(gameId: string) {
@@ -147,13 +182,16 @@ export class GameController {
     }
   }
 
-  sendSolution(solution: string, gameId: string, playerId: string) {
-    const game = this.activeGames[gameId];
+  sendSolution(solution: string, playerId: string) {
+    const game = this.getPlayerGame(playerId);
     if (game) {
       const currentRound = game.rounds[game.round];
       const correctSolution = currentRound.answer;
+      console.log(correctSolution, solution);
       if (solution === correctSolution) {
         currentRound.winner = playerId;
+        const player = game.players.find((p) => p.id === playerId);
+        player.score += 1;
         game.rounds.push(this.getNextRound(game));
         game.round = game.round + 1;
       }

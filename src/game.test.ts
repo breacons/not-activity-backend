@@ -1,15 +1,22 @@
 import { GameController, Player } from "./game";
-import WebRTCController from "./socket";
-jest.mock("./webRTC");
 
 describe("Game engine", () => {
+  const player: Player = {
+    id: "test",
+    name: "Bela",
+    webRtc: {},
+    score: 0,
+  };
+
+  const player2: Player = {
+    id: "test2",
+    name: "Jozsi",
+    webRtc: {},
+    score: 0,
+  };
+
   it("Should create a new Game", () => {
     const gameController = new GameController();
-    const player: Player = {
-      id: "test",
-      name: "Bela",
-      webRtc: {},
-    };
 
     const gameInfo = gameController.createGame(player);
 
@@ -20,17 +27,6 @@ describe("Game engine", () => {
 
   it("Should join an existing game", () => {
     const gameController = new GameController();
-    const player: Player = {
-      id: "test",
-      name: "Bela",
-      webRtc: {},
-    };
-
-    const player2: Player = {
-      id: "test2",
-      name: "Jozsi",
-      webRtc: {},
-    };
 
     let gameInfo = gameController.createGame(player);
 
@@ -40,22 +36,11 @@ describe("Game engine", () => {
 
   it("Should start a game", () => {
     const gameController = new GameController();
-    const player: Player = {
-      id: "test",
-      name: "Bela",
-      webRtc: {},
-    };
-
-    const player2: Player = {
-      id: "test2",
-      name: "Jozsi",
-      webRtc: {},
-    };
 
     let gameInfo = gameController.createGame(player);
     gameInfo = gameController.joinGame(gameInfo.id, player2);
 
-    const gameState = gameController.startGame(gameInfo.id);
+    const gameState = gameController.startGame(player.id);
     expect(gameState.rounds).toHaveLength(1);
     expect(gameState.round).toEqual(0);
     expect(gameState.rounds[0].activePlayer).toEqual(player.id);
@@ -63,31 +48,28 @@ describe("Game engine", () => {
 
   it("Should handle submitting a correct solution", () => {
     const gameController = new GameController();
-    const player: Player = {
-      id: "test",
-      name: "Bela",
-      webRtc: {},
-    };
-
-    const player2: Player = {
-      id: "test2",
-      name: "Jozsi",
-      webRtc: {},
-    };
 
     let gameInfo = gameController.createGame(player);
     gameInfo = gameController.joinGame(gameInfo.id, player2);
 
-    let gameState = gameController.startGame(gameInfo.id);
+    let gameState = gameController.startGame(player.id);
 
-
-    gameState = gameController.sendSolution(
-      "elephant",
-      gameInfo.id,
-      player.id
-    );
+    gameState = gameController.sendSolution("elephant", player.id);
     expect(gameState.rounds).toHaveLength(2);
     expect(gameState.round).toEqual(1);
     expect(gameState.rounds[1].activePlayer).toEqual(player2.id);
+    expect(gameState.players.find((p) => p.id === player.id).score).toEqual(1);
+  });
+
+  it("Should handle time ticks", () => {
+    const gameController = new GameController();
+
+    let gameInfo = gameController.createGame(player);
+    gameInfo = gameController.joinGame(gameInfo.id, player2);
+
+    let gameState = gameController.startGame(player.id);
+
+    gameState = gameController.gameTick(player.id);
+    expect(gameState.rounds[gameState.round].timeLeft).toEqual(59);
   });
 });
