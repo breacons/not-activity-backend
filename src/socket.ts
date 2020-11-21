@@ -2,8 +2,8 @@ import { Server, Socket } from "socket.io";
 import { GameController, Player } from "./game";
 
 export type PlayerPayload = { name: string; webRTC: any };
-export default class WebRTCController {
-  constructor(io: Server, private gameController: GameController) {
+export default class SocketController {
+  constructor(private io: Server, private gameController: GameController) {
     io.on("connection", (socket) => this.onConnect(socket));
   }
 
@@ -14,13 +14,18 @@ export default class WebRTCController {
     socket.on("joinGame", (payload) => this.onJoinGame(socket, payload));
     socket.on("startGame", (payload) => this.onStartGame(socket, payload));
     socket.on("solution", (payload) => this.onSolution(socket, payload));
+    socket.on("signal", (payload) => this.onSignal(socket, payload));
   }
 
   onDisconnect(socket: Socket) {
     console.log("Client disconnected: " + socket.id);
+    const lastActiveGameId = this.gameController.getPlayerGameId(socket.id);
+    this.io.to(lastActiveGameId).emit("removePeer", socket.id);
+    socket.leave(lastActiveGameId);
   }
 
   onCreateGame(socket: Socket, payload: PlayerPayload) {
+    console.log(`Creating game by ${socket.id} - ${payload.name}`);
     const player: Player = {
       id: socket.id,
       name: payload.name,
@@ -28,11 +33,13 @@ export default class WebRTCController {
     };
 
     const gameInfo = this.gameController.createGame(player);
+    console.log(`Game created: ${gameInfo.id}`);
     socket.join(gameInfo.id);
-    socket.to(gameInfo.id).emit("gameInfo", gameInfo);
+    this.io.to(gameInfo.id).emit("gameInfo", gameInfo);
   }
 
   onJoinGame(socket: Socket, payload: { player: PlayerPayload; room: string }) {
+    console.log(`Joining game ${socket.id}; game: ${payload.room}`);
     const player: Player = {
       id: socket.id,
       name: payload.player.name,
@@ -40,12 +47,14 @@ export default class WebRTCController {
     };
     const gameInfo = this.gameController.joinGame(payload.room, player);
     socket.join(gameInfo.id);
-    socket.to(gameInfo.id).emit("gameInfo", gameInfo);
+    console.log(`${player.name} joined ${payload.room}`);
+    this.io.to(gameInfo.id).emit("gameInfo", gameInfo);
+    socket.to(gameInfo.id).emit("initReceive", socket.id);
   }
 
   onStartGame(socket: Socket, payload: { gameId: string }) {
     const gameState = this.gameController.startGame(payload.gameId);
-    socket.to(payload.gameId).emit("gameState", gameState);
+    this.io.to(payload.gameId).emit("gameState", gameState);
   }
 
   onSolution(socket: Socket, payload: { solution: string; gameId: string }) {
@@ -54,6 +63,19 @@ export default class WebRTCController {
       payload.gameId,
       socket.id
     );
-    socket.to(payload.gameId).emit("gameState", gameState);
+    this.io.to(payload.gameId).emit("gameState", gameState);
+  }
+
+  onSignal(socket: Socket, payload: { signal: any }) {
+    console.log("sending signal from " + socket.id + " to ", payload.signal);
+    this.io.to(socket.id).emit("signal", {
+      socket_id: socket.id,
+      signal: payload.signal,
+    });
+  }
+
+  onInitSend(socket: Socket, payload: { init_socket_id: string }) {
+    console.log("INIT SEND by " + socket.id + " for " + payload.init_socket_id);
+    this.io.to(payload.init_socket_id).send("initSend", socket.id);
   }
 }

@@ -1,10 +1,10 @@
 import { GameController, Player } from "./game";
-import WebRTCController from "./webRTC";
+import WebRTCController from "./socket";
 jest.mock("./webRTC");
 
 describe("Game engine", () => {
   it("Should create a new Game", () => {
-    const gameController = new GameController(undefined);
+    const gameController = new GameController();
     const player: Player = {
       id: "test",
       name: "Bela",
@@ -19,7 +19,7 @@ describe("Game engine", () => {
   });
 
   it("Should join an existing game", () => {
-    const gameController = new GameController(undefined);
+    const gameController = new GameController();
     const player: Player = {
       id: "test",
       name: "Bela",
@@ -39,7 +39,7 @@ describe("Game engine", () => {
   });
 
   it("Should start a game", () => {
-    const gameController = new GameController(undefined);
+    const gameController = new GameController();
     const player: Player = {
       id: "test",
       name: "Bela",
@@ -62,7 +62,7 @@ describe("Game engine", () => {
   });
 
   it("Should handle submitting a correct solution", () => {
-    const gameController = new GameController(undefined);
+    const gameController = new GameController();
     const player: Player = {
       id: "test",
       name: "Bela",

@@ -1,6 +1,6 @@
 import e from "express";
 import { Server } from "socket.io";
-import WebRTCController from "./webRTC";
+import WebRTCController from "./socket";
 
 const mockQuestions = ["elephant", "pizza", "spaceship"];
 export type Player = {
@@ -39,11 +39,8 @@ export type GameState = Game & { rounds: GameStateRound[] };
 export class GameController {
   players: { [playerId: string]: any } = {};
   activeGames: { [gameId: string]: Game } = {};
-  webRtcController: WebRTCController;
 
-  constructor(io: Server) {
-    this.webRtcController = new WebRTCController(io, this);
-  }
+  constructor() {}
 
   private createGameInfo(game: Game) {
     return {
@@ -78,6 +75,10 @@ export class GameController {
         ],
       winner: undefined,
     };
+  }
+
+  getPlayerGameId(playerId: string) {
+      return this.players[playerId]?.game;
   }
 
   createGame(creator: Player) {
