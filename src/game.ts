@@ -1,6 +1,6 @@
 import e from "express";
 import { Server } from "socket.io";
-import { WebRTCController } from "./webRTC";
+import WebRTCController from "./webRTC";
 
 const mockQuestions = ["elephant", "pizza", "spaceship"];
 export type Player = {
@@ -31,6 +31,10 @@ export type Game = {
   rounds: Round[];
   players: Player[];
 };
+
+export type GameStateRound = Omit<Round, "answer">;
+
+export type GameState = Game & { rounds: GameStateRound[] };
 
 export class GameController {
   players: { [playerId: string]: any } = {};
@@ -90,7 +94,9 @@ export class GameController {
 
     this.players[creator.id] = { game: game.id, player: creator };
     this.activeGames[game.id] = game;
-    this.webRtcController.send([creator], this.createGameInfo(game));
+    const gameInfo = this.createGameInfo(game);
+    this.webRtcController.send([creator], gameInfo);
+    return gameInfo;
   }
 
   joinGame(gameId: string, player: Player) {
@@ -99,10 +105,9 @@ export class GameController {
       this.players[player.id] = { game: game.id, player };
       game.players.push(player);
     }
-    this.webRtcController.send(
-      this.getAllPlayersInGame(game),
-      this.createGameInfo(game)
-    );
+    const gameInfo = this.createGameInfo(game);
+    this.webRtcController.send(this.getAllPlayersInGame(game), gameInfo);
+    return gameInfo;
   }
 
   startGame(gameId: string) {
@@ -119,13 +124,13 @@ export class GameController {
       game.rounds.push(round);
       game.round = 0;
 
-      this.webRtcController.send(
-        this.getAllPlayersInGame(game),
-        this.createGameState(game)
-      );
+      const gameState = this.createGameState(game);
+      this.webRtcController.send(this.getAllPlayersInGame(game), gameState);
+      return gameState;
     }
   }
-  createGameState(game: Game): any {
+
+  createGameState(game: Game): GameState {
     const gameState = { ...game };
     gameState.rounds = game.rounds.map((round) => ({
       ...round,
@@ -153,17 +158,15 @@ export class GameController {
     if (game) {
       const currentRound = game.rounds[game.round];
       const correctSolution = currentRound.answer;
-
       if (solution === correctSolution) {
         currentRound.winner = player.id;
         game.rounds.push(this.getNextRound(game));
         game.round = game.round + 1;
       }
 
-      this.webRtcController.send(
-        this.getAllPlayersInGame(game),
-        this.createGameState(game)
-      );
+      const gameState = this.createGameState(game);
+      this.webRtcController.send(this.getAllPlayersInGame(game), gameState);
+      return gameState;
     }
   }
 }

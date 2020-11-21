@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import { Player } from "./game";
 
-export class WebRTCController {
+export default class WebRTCController {
   constructor(private io: Server) {}
 
   send(players: Player[], data: any) {
