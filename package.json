@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsc && node dist/app.js",
     "test": "jest",
-    "watch": "ts-node-dev src/app.ts"
+    "watch": "ts-node-dev src/app.ts",
+    "gcp-build": "tsc"
   },
   "author": "Gergely Bihary",
   "license": "ISC",
