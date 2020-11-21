@@ -3,11 +3,18 @@ import { Server } from "socket.io";
 import WebRTCController from "./socket";
 
 const mockQuestions = ["elephant", "pizza", "spaceship"];
+
+export enum Team {
+  RED = "RED",
+  BLUE = "BLUE",
+}
+
 export type Player = {
   id: string;
   name: string;
   score: number;
   webRtc: any;
+  team: Team;
 };
 
 export enum RoundType {
@@ -20,7 +27,7 @@ const roundTypeOrder = [RoundType.draw, RoundType.show, RoundType.talk];
 export type Round = {
   roundNumber: number;
   timeLeft: number;
-  activePlayer: string;
+  activePlayer: Player;
   roundType: RoundType;
   answer: string;
   winner: string;
@@ -57,10 +64,12 @@ export class GameController {
       timeLeft: 60,
       activePlayer:
         game.players[
-          (game.players.findIndex((p) => p.id === previousRound.activePlayer) +
+          (game.players.findIndex(
+            (p) => p.id === previousRound.activePlayer.id
+          ) +
             1) %
             game.players.length
-        ].id,
+        ],
       roundType:
         roundTypeOrder[
           (roundTypeOrder.findIndex(
@@ -132,7 +141,7 @@ export class GameController {
       const round: Round = {
         roundNumber: 0,
         timeLeft: 60,
-        activePlayer: game.players[0].id,
+        activePlayer: game.players[0],
         roundType: RoundType.draw,
         answer: mockQuestions[0],
         winner: undefined,

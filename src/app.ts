@@ -4,15 +4,16 @@ import cors from "cors";
 import { Server } from "socket.io";
 import { GameController } from "./game";
 import SocketController from "./socket";
-const port = 3000;
+const port = 3001;
 
 const app = express();
-app.use(cors());
+app.use(cors({ credentials: true }));
 
 const http = httpserver.createServer(app);
 const io = new Server(http, {
   cors: {
-    origin: "*",
+    origin: "http://localhost:3000",
+    credentials: true,
   },
 });
 

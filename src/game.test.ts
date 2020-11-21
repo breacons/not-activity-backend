@@ -1,4 +1,4 @@
-import { GameController, Player } from "./game";
+import { GameController, Player, Team } from "./game";
 
 describe("Game engine", () => {
   const player: Player = {
@@ -6,6 +6,7 @@ describe("Game engine", () => {
     name: "Bela",
     webRtc: {},
     score: 0,
+    team: Team.BLUE,
   };
 
   const player2: Player = {
@@ -13,6 +14,7 @@ describe("Game engine", () => {
     name: "Jozsi",
     webRtc: {},
     score: 0,
+    team: Team.RED,
   };
 
   it("Should create a new Game", () => {
@@ -43,7 +45,7 @@ describe("Game engine", () => {
     const gameState = gameController.startGame(player.id);
     expect(gameState.rounds).toHaveLength(1);
     expect(gameState.round).toEqual(0);
-    expect(gameState.rounds[0].activePlayer).toEqual(player.id);
+    expect(gameState.rounds[0].activePlayer).toEqual(player);
   });
 
   it("Should handle submitting a correct solution", () => {
@@ -57,7 +59,7 @@ describe("Game engine", () => {
     gameState = gameController.sendSolution("elephant", player.id);
     expect(gameState.rounds).toHaveLength(2);
     expect(gameState.round).toEqual(1);
-    expect(gameState.rounds[1].activePlayer).toEqual(player2.id);
+    expect(gameState.rounds[1].activePlayer).toEqual(player2);
     expect(gameState.players.find((p) => p.id === player.id).score).toEqual(1);
   });
 

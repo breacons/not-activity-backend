@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import { GameController, Player } from "./game";
+import { GameController, Player, Team } from "./game";
 
 export type PlayerPayload = { name: string; webRTC: any };
 export default class SocketController {
@@ -16,6 +16,7 @@ export default class SocketController {
     socket.on("solution", (payload) => this.onSolution(socket, payload));
     socket.on("tick", (payload) => this.onTick(socket, payload));
     socket.on("signal", (payload) => this.onSignal(socket, payload));
+    socket.on("initSend", (payload) => this.onInitSend(socket, payload));
   }
 
   onDisconnect(socket: Socket) {
@@ -33,6 +34,7 @@ export default class SocketController {
       name: payload.name,
       webRtc: payload.webRTC,
       score: 0,
+      team: Team.BLUE,
     };
 
     const gameInfo = this.gameController.createGame(player);
@@ -48,6 +50,7 @@ export default class SocketController {
       name: payload.player.name,
       webRtc: payload.player.webRTC,
       score: 0,
+      team: Team.RED, // TODO fix this!
     };
     const gameInfo = this.gameController.joinGame(payload.room, player);
     if (gameInfo) {
@@ -95,6 +98,6 @@ export default class SocketController {
 
   onInitSend(socket: Socket, payload: { init_socket_id: string }) {
     console.log("INIT SEND by " + socket.id + " for " + payload.init_socket_id);
-    this.io.to(payload.init_socket_id).send("initSend", socket.id);
+    this.io.to(payload.init_socket_id).emit("initSend", socket.id);
   }
 }
