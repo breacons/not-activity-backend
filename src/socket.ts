@@ -88,9 +88,9 @@ export default class SocketController {
     }
   }
 
-  onSignal(socket: Socket, payload: { signal: any }) {
+  onSignal(socket: Socket, payload: { signal: any; socket_id: string }) {
     console.log("sending signal from " + socket.id + " to ", payload.signal);
-    this.io.to(socket.id).emit("signal", {
+    this.io.to(payload.socket_id).emit("signal", {
       socket_id: socket.id,
       signal: payload.signal,
     });
