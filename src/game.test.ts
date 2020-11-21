@@ -84,7 +84,7 @@ describe("Game engine", () => {
     gameState = gameController.sendSolution(
       "elephant",
       gameInfo.id,
-      player
+      player.id
     );
     expect(gameState.rounds).toHaveLength(2);
     expect(gameState.round).toEqual(1);

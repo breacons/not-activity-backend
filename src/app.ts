@@ -1,6 +1,8 @@
 import express from "express";
 import * as httpserver from 'http';
 import { Server } from 'socket.io';
+import { GameController } from "./game";
+import WebRTCController from "./webRTC";
 const port = 3000;
 
 const app = express()
@@ -11,13 +13,7 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-
-io.on("connection", (socket) => {
-  console.log("a user connected");
-  socket.on("disconnect", () => {
-    console.log("user disconnected");
-  });
-});
+const _socketController = new WebRTCController(io, new GameController(io));
 
 http.listen(port, () => {
   return console.log(`server is listening on ${port}`);

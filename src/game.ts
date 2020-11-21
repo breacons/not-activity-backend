@@ -42,7 +42,7 @@ export class GameController {
   webRtcController: WebRTCController;
 
   constructor(io: Server) {
-    this.webRtcController = new WebRTCController(io);
+    this.webRtcController = new WebRTCController(io, this);
   }
 
   private createGameInfo(game: Game) {
@@ -50,10 +50,6 @@ export class GameController {
       id: game.id,
       players: game.players,
     };
-  }
-
-  private getAllPlayersInGame(game: Game): Player[] {
-    return game.players;
   }
 
   private getNextRound(game: Game): Round {
@@ -95,7 +91,6 @@ export class GameController {
     this.players[creator.id] = { game: game.id, player: creator };
     this.activeGames[game.id] = game;
     const gameInfo = this.createGameInfo(game);
-    this.webRtcController.send([creator], gameInfo);
     return gameInfo;
   }
 
@@ -106,7 +101,6 @@ export class GameController {
       game.players.push(player);
     }
     const gameInfo = this.createGameInfo(game);
-    this.webRtcController.send(this.getAllPlayersInGame(game), gameInfo);
     return gameInfo;
   }
 
@@ -125,7 +119,6 @@ export class GameController {
       game.round = 0;
 
       const gameState = this.createGameState(game);
-      this.webRtcController.send(this.getAllPlayersInGame(game), gameState);
       return gameState;
     }
   }
@@ -153,19 +146,18 @@ export class GameController {
     }
   }
 
-  sendSolution(solution: string, gameId: string, player: Player) {
+  sendSolution(solution: string, gameId: string, playerId: string) {
     const game = this.activeGames[gameId];
     if (game) {
       const currentRound = game.rounds[game.round];
       const correctSolution = currentRound.answer;
       if (solution === correctSolution) {
-        currentRound.winner = player.id;
+        currentRound.winner = playerId;
         game.rounds.push(this.getNextRound(game));
         game.round = game.round + 1;
       }
 
       const gameState = this.createGameState(game);
-      this.webRtcController.send(this.getAllPlayersInGame(game), gameState);
       return gameState;
     }
   }
