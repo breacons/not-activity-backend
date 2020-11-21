@@ -92,6 +92,16 @@ export class GameController {
     return this.activeGames && this.activeGames[gameId];
   }
 
+  getTeamsInGame(gameId: string) {
+    const game = this.activeGames[gameId];
+    if (game) {
+      return {
+        [Team.BLUE]: game.players.filter((p) => p.team === Team.BLUE),
+        [Team.RED]: game.players.filter((p) => p.team === Team.RED),
+      };
+    }
+  }
+
   leaveGame(playerId: string) {
     const gameId = this.players[playerId]?.game;
     const game = this.activeGames[gameId];
@@ -171,11 +181,6 @@ export class GameController {
 
   createGameState(game: Game): GameState {
     const gameState = { ...game };
-    gameState.rounds = game.rounds.map((round) => ({
-      ...round,
-      answer: undefined,
-    }));
-
     return gameState;
   }
 
@@ -196,7 +201,6 @@ export class GameController {
     if (game) {
       const currentRound = game.rounds[game.round];
       const correctSolution = currentRound.answer;
-      console.log(correctSolution, solution);
       if (solution === correctSolution) {
         currentRound.winner = playerId;
         const player = game.players.find((p) => p.id === playerId);

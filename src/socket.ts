@@ -45,12 +45,16 @@ export default class SocketController {
 
   onJoinGame(socket: Socket, payload: { player: PlayerPayload; room: string }) {
     console.log(`Joining game ${socket.id}; game: ${payload.room}`);
+    const teams = this.gameController.getTeamsInGame(payload.room);
+    const teamToJoin =
+      teams.RED.length > teams.BLUE.length ? Team.BLUE : Team.RED;
+
     const player: Player = {
       id: socket.id,
       name: payload.player.name,
       webRtc: payload.player.webRTC,
       score: 0,
-      team: Team.RED, // TODO fix this!
+      team: teamToJoin,
     };
     const gameInfo = this.gameController.joinGame(payload.room, player);
     if (gameInfo) {
@@ -89,7 +93,7 @@ export default class SocketController {
   }
 
   onSignal(socket: Socket, payload: { signal: any; socket_id: string }) {
-    console.log("sending signal from " + socket.id + " to ", payload.signal);
+    console.log("sending signal from " + socket.id + " to ", payload.socket_id);
     this.io.to(payload.socket_id).emit("signal", {
       socket_id: socket.id,
       signal: payload.signal,
@@ -97,7 +101,12 @@ export default class SocketController {
   }
 
   onInitSend(socket: Socket, payload: { init_socket_id: string }) {
-    console.log("INIT SEND by " + socket.id + " for " + payload.init_socket_id);
+    console.log(
+      "Initiate send request from " +
+        socket.id +
+        " to " +
+        payload.init_socket_id
+    );
     this.io.to(payload.init_socket_id).emit("initSend", socket.id);
   }
 }
