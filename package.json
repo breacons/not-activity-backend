@@ -4,10 +4,11 @@
   "description": "Magical backend for a magical game",
   "main": "dist/app.js",
   "scripts": {
-    "start": "tsc && node dist/app.js",
+    "start": "node dist/app.js",
     "test": "jest",
     "watch": "ts-node-dev src/app.ts",
-    "gcp-build": "tsc"
+    "gcp-build": "tsc",
+    "build": "tsc"
   },
   "author": "Gergely Bihary",
   "license": "ISC",

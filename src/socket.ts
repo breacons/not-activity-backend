@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { GameController, Player, Team } from "./game";
 
-export type PlayerPayload = { name: string; webRTC: any };
+export type PlayerPayload = { name: string; webRTC: any; emoji: string };
 export default class SocketController {
   constructor(private io: Server, private gameController: GameController) {
     io.on("connection", (socket) => this.onConnect(socket));
@@ -35,6 +35,7 @@ export default class SocketController {
       webRtc: payload.webRTC,
       score: 0,
       team: Team.BLUE,
+      emoji: payload.emoji,
     };
 
     const gameInfo = this.gameController.createGame(player);
@@ -55,6 +56,7 @@ export default class SocketController {
       webRtc: payload.player.webRTC,
       score: 0,
       team: teamToJoin,
+      emoji: payload.player.emoji,
     };
     const gameInfo = this.gameController.joinGame(payload.room, player);
     if (gameInfo) {

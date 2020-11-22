@@ -15,6 +15,7 @@ export type Player = {
   score: number;
   webRtc: any;
   team: Team;
+  emoji: string;
 };
 
 export enum RoundType {
@@ -98,6 +99,11 @@ export class GameController {
       return {
         [Team.BLUE]: game.players.filter((p) => p.team === Team.BLUE),
         [Team.RED]: game.players.filter((p) => p.team === Team.RED),
+      };
+    } else {
+      return {
+        [Team.BLUE]: [],
+        [Team.RED]: [],
       };
     }
   }
