@@ -128,6 +128,9 @@ export class GameController {
   }
 
   createGame(creator: Player) {
+    if (this.getPlayerGame(creator.id)) {
+      return;
+    }
     const game: Game = {
       id: randomWords({ exactly: 1, wordsPerString: 2, separator: "-" })[0],
       round: 0,
@@ -142,6 +145,9 @@ export class GameController {
   }
 
   joinGame(gameId: string, player: Player) {
+    if (this.getPlayerGame(player.id)) {
+      return;
+    }
     const game = this.activeGames[gameId];
     if (game) {
       this.players[player.id] = { game: game.id, player };
@@ -224,7 +230,7 @@ export class GameController {
     if (game) {
       const currentRound = game.rounds[game.round];
       const correctSolution = currentRound.answer;
-      const isCorrect = solution === correctSolution
+      const isCorrect = solution === correctSolution;
       if (isCorrect) {
         currentRound.winner = playerId;
         const player = game.players.find((p) => p.id === playerId);
@@ -234,7 +240,7 @@ export class GameController {
       }
 
       const gameState = this.createGameState(game);
-      return {gameState, isCorrect};
+      return { gameState, isCorrect };
     }
   }
 }

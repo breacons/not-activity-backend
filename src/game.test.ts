@@ -56,9 +56,9 @@ describe("Game engine", () => {
     let gameInfo = gameController.createGame(player);
     gameInfo = gameController.joinGame(gameInfo.id, player2);
 
-    let gameState = gameController.startGame(player.id);
+    let _gameState = gameController.startGame(player.id);
 
-    gameState = gameController.sendSolution("elephant", player.id);
+    const {gameState, isCorrect} = gameController.sendSolution("elephant", player.id);
     expect(gameState.rounds).toHaveLength(2);
     expect(gameState.round).toEqual(1);
     expect(gameState.rounds[1].activePlayer).toEqual(player2);
