@@ -68,7 +68,7 @@ export class GameController {
     const previousRound = game.rounds[game.round];
     return {
       roundNumber: game.round + 1,
-      timeLeft: 60,
+      timeLeft: 30,
       activePlayer:
         game.players[
           (game.players.findIndex(
@@ -168,7 +168,7 @@ export class GameController {
     if (game) {
       const round: Round = {
         roundNumber: 0,
-        timeLeft: 60,
+        timeLeft: 30,
         activePlayer: game.players[0],
         roundType: RoundType.draw,
         answer: mockQuestions[0],

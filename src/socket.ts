@@ -88,13 +88,11 @@ export default class SocketController {
       socket.id
     );
     if (gameState) {
-      this.io
-        .to(gameState.id)
-        .emit("solution", {
-          answer: payload.solution,
-          sender: socket.id,
-          isCorrect,
-        });
+      this.io.to(gameState.id).emit("solution", {
+        answer: payload.solution,
+        sender: socket.id,
+        isCorrect,
+      });
       this.io.to(gameState.id).emit("gameState", gameState);
       console.log("Solution submitted", gameState);
     }
