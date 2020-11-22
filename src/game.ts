@@ -1,6 +1,12 @@
 import randomWords from "random-words";
 
-const mockQuestions = ["elephant", "pizza", "spaceship"];
+const mockQuestions = [
+  "elephant",
+  "pizza",
+  "spaceship",
+  "hackathon",
+  "weekend",
+];
 
 export enum Team {
   RED = "RED",
