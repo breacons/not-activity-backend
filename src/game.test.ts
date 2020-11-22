@@ -74,6 +74,6 @@ describe("Game engine", () => {
     let gameState = gameController.startGame(player.id);
 
     gameState = gameController.gameTick(player.id);
-    expect(gameState.rounds[gameState.round].timeLeft).toEqual(59);
+    expect(gameState.rounds[gameState.round].timeLeft).toEqual(29);
   });
 });
