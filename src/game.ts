@@ -224,7 +224,8 @@ export class GameController {
     if (game) {
       const currentRound = game.rounds[game.round];
       const correctSolution = currentRound.answer;
-      if (solution === correctSolution) {
+      const isCorrect = solution === correctSolution
+      if (isCorrect) {
         currentRound.winner = playerId;
         const player = game.players.find((p) => p.id === playerId);
         player.score += 1;
@@ -233,7 +234,7 @@ export class GameController {
       }
 
       const gameState = this.createGameState(game);
-      return gameState;
+      return {gameState, isCorrect};
     }
   }
 }

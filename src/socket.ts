@@ -83,12 +83,18 @@ export default class SocketController {
   }
 
   onSolution(socket: Socket, payload: { solution: string }) {
-    const gameState = this.gameController.sendSolution(
+    const { gameState, isCorrect } = this.gameController.sendSolution(
       payload.solution,
       socket.id
     );
     if (gameState) {
-      this.io.to(gameState.id).emit("solution", payload.solution);
+      this.io
+        .to(gameState.id)
+        .emit("solution", {
+          answer: payload.solution,
+          sender: socket.id,
+          isCorrect,
+        });
       this.io.to(gameState.id).emit("gameState", gameState);
       console.log("Solution submitted", gameState);
     }
