@@ -1,6 +1,4 @@
-import e from "express";
-import { Server } from "socket.io";
-import WebRTCController from "./socket";
+import randomWords from "random-words";
 
 const mockQuestions = ["elephant", "pizza", "spaceship"];
 
@@ -34,6 +32,11 @@ export type Round = {
   winner: string;
 };
 
+export type Leaderboard = {
+  teamScores: { [color: string]: number };
+  playerLeaderboard: Player[];
+};
+
 export type Game = {
   id: string;
   round: number;
@@ -43,20 +46,17 @@ export type Game = {
 
 export type GameStateRound = Omit<Round, "answer">;
 
-export type GameState = Game & { rounds: GameStateRound[] };
+export type GameState = Game & {
+  rounds: Round[];
+  isOver: boolean;
+  leaderboard: Leaderboard;
+};
 
 export class GameController {
   players: { [playerId: string]: { game: string; player: Player } } = {};
   activeGames: { [gameId: string]: Game } = {};
 
   constructor() {}
-
-  private createGameInfo(game: Game) {
-    return {
-      id: game.id,
-      players: game.players,
-    };
-  }
 
   private getNextRound(game: Game): Round {
     const previousRound = game.rounds[game.round];
@@ -129,7 +129,7 @@ export class GameController {
 
   createGame(creator: Player) {
     const game: Game = {
-      id: `game-${Date.now()}`,
+      id: randomWords({ exactly: 1, wordsPerString: 2, separator: "-" })[0],
       round: 0,
       rounds: [],
       players: [creator],
@@ -137,7 +137,7 @@ export class GameController {
 
     this.players[creator.id] = { game: game.id, player: creator };
     this.activeGames[game.id] = game;
-    const gameInfo = this.createGameInfo(game);
+    const gameInfo = this.getGameInfo(game.id);
     return gameInfo;
   }
 
@@ -146,7 +146,7 @@ export class GameController {
     if (game) {
       this.players[player.id] = { game: game.id, player };
       game.players.push(player);
-      const gameInfo = this.createGameInfo(game);
+      const gameInfo = this.getGameInfo(game.id);
       return gameInfo;
     }
   }
@@ -186,13 +186,30 @@ export class GameController {
   }
 
   createGameState(game: Game): GameState {
-    const gameState = { ...game };
+    const gameState = {
+      ...game,
+      isOver: game.round >= 5,
+      leaderboard: {
+        playerLeaderboard: game.players.sort((p) => p.score),
+        teamScores: {
+          [Team.RED]: game.players
+            .filter((p) => p.team === Team.RED)
+            .map((p) => p.score)
+            .reduce((prev, next) => prev + next, 0),
+          [Team.BLUE]: game.players
+            .filter((p) => p.team === Team.BLUE)
+            .map((p) => p.score)
+            .reduce((prev, next) => prev + next, 0),
+        },
+      },
+    };
+
     return gameState;
   }
 
   getGameInfo(gameId: string) {
     const game = this.activeGames[gameId];
-    return game;
+    return this.createGameState(game);
   }
 
   getGameState(gameId: string) {

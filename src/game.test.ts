@@ -7,6 +7,7 @@ describe("Game engine", () => {
     webRtc: {},
     score: 0,
     team: Team.BLUE,
+    emoji: "😍",
   };
 
   const player2: Player = {
@@ -15,6 +16,7 @@ describe("Game engine", () => {
     webRtc: {},
     score: 0,
     team: Team.RED,
+    emoji: "😍",
   };
 
   it("Should create a new Game", () => {
